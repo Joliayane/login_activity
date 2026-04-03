@@ -1,13 +1,19 @@
 import { useRouter } from 'expo-router';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
 
 export default function HomeScreen() {
   const router = useRouter();
   const { userData } = useUser();
+  const { theme, isDark, toggleTheme } = useTheme();
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+
+      <TouchableOpacity style={styles.themeToggle} onPress={toggleTheme}>
+        <Text style={{ color: theme.text }}>{isDark ? '☀️ Light Mode' : '🌙 Dark Mode'}</Text>
+      </TouchableOpacity>
 
       {userData.photo ? (
         <Image source={{ uri: userData.photo }} style={styles.avatar} />
@@ -17,11 +23,11 @@ export default function HomeScreen() {
         </View>
       )}
 
-      <Text style={styles.title}>
+      <Text style={[styles.title, { color: theme.text }]}>
         Welcome, {userData.firstName} {userData.lastName}!
       </Text>
 
-      <Text style={styles.subtitle}>You are now logged in.</Text>
+      <Text style={[styles.subtitle, { color: theme.subText }]}>You are now logged in.</Text>
 
       <TouchableOpacity style={styles.button} onPress={() => router.replace('/login')}>
         <Text style={styles.buttonText}>Logout</Text>
@@ -36,8 +42,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
     padding: 20,
+  },
+  themeToggle: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
   },
   avatar: {
     width: 100,
@@ -66,11 +76,10 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 14,
-    color: 'gray',
     marginBottom: 30,
   },
   button: {
-    backgroundColor: '#ff99c4',
+    backgroundColor: '#f44336',
     padding: 12,
     borderRadius: 5,
     width: 150,

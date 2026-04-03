@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
-import { Controller, useForm } from 'react-hook-form';
+import { Controller, SubmitHandler, useForm } from 'react-hook-form';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useTheme } from '../context/ThemeContext';
 
 type FormData = {
   email: string;
@@ -9,18 +10,24 @@ type FormData = {
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { theme, isDark, toggleTheme } = useTheme();
   const { control, handleSubmit, formState: { errors } } = useForm<FormData>();
 
-  const onSubmit = (data: FormData) => {
+  const onSubmit: SubmitHandler<FormData> = (data) => {
     console.log(data);
     router.replace('/');
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Login</Text>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
 
-      <Text style={styles.label}>Email</Text>
+      <TouchableOpacity style={styles.themeToggle} onPress={toggleTheme}>
+        <Text style={{ color: theme.text }}>{isDark ? '☀️ Light Mode' : '🌙 Dark Mode'}</Text>
+      </TouchableOpacity>
+
+      <Text style={[styles.title, { color: theme.text }]}>Login</Text>
+
+      <Text style={[styles.label, { color: theme.text }]}>Email</Text>
       <Controller
         control={control}
         name="email"
@@ -30,8 +37,9 @@ export default function LoginScreen() {
         }}
         render={({ field: { onChange, value } }) => (
           <TextInput
-            style={styles.input}
+            style={[styles.input, { borderColor: theme.inputBorder, backgroundColor: theme.inputBackground, color: theme.text }]}
             placeholder="Enter your email"
+            placeholderTextColor={theme.subText}
             onChangeText={onChange}
             value={value}
             keyboardType="email-address"
@@ -40,7 +48,7 @@ export default function LoginScreen() {
       />
       {errors.email && <Text style={styles.error}>{errors.email.message as string}</Text>}
 
-      <Text style={styles.label}>Password</Text>
+      <Text style={[styles.label, { color: theme.text }]}>Password</Text>
       <Controller
         control={control}
         name="password"
@@ -50,8 +58,9 @@ export default function LoginScreen() {
         }}
         render={({ field: { onChange, value } }) => (
           <TextInput
-            style={styles.input}
+            style={[styles.input, { borderColor: theme.inputBorder, backgroundColor: theme.inputBackground, color: theme.text }]}
             placeholder="Enter your password"
+            placeholderTextColor={theme.subText}
             onChangeText={onChange}
             value={value}
             secureTextEntry
@@ -60,13 +69,14 @@ export default function LoginScreen() {
       />
       {errors.password && <Text style={styles.error}>{errors.password.message as string}</Text>}
 
-      <TouchableOpacity style={styles.button} onPress={handleSubmit(onSubmit)}>
+      <TouchableOpacity style={[styles.button, { backgroundColor: theme.buttonColor }]} onPress={handleSubmit(onSubmit)}>
         <Text style={styles.buttonText}>Login</Text>
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => router.push('/register')}>
-        <Text style={styles.linkText}>Don't have an account? Register</Text>
+        <Text style={[styles.linkText, { color: theme.linkColor }]}>Don't have an account? Register</Text>
       </TouchableOpacity>
+
     </View>
   );
 }
@@ -76,7 +86,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     padding: 20,
-    backgroundColor: '#fff',
+  },
+  themeToggle: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
   },
   title: {
     fontSize: 24,
@@ -87,11 +101,9 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     marginBottom: 4,
-    color: '#333',
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ccc',
     padding: 10,
     marginBottom: 5,
     borderRadius: 5,
@@ -103,7 +115,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   button: {
-    backgroundColor: '#ff99c4',
     padding: 12,
     borderRadius: 5,
     marginTop: 10,
@@ -116,7 +127,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   linkText: {
-    color: 'blue',
     textAlign: 'center',
     fontSize: 13,
   },

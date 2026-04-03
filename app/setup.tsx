@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Controller, SubmitHandler, useForm } from 'react-hook-form';
 import { Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
 
 type FormData = {
@@ -13,6 +14,7 @@ type FormData = {
 export default function SetupScreen() {
   const router = useRouter();
   const { setUserData } = useUser();
+  const { theme, isDark, toggleTheme } = useTheme();
   const { control, handleSubmit, formState: { errors } } = useForm<FormData>();
   const [photo, setPhoto] = useState<string | null>(null);
 
@@ -39,8 +41,13 @@ export default function SetupScreen() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Setup Account</Text>
+    <ScrollView contentContainerStyle={[styles.container, { backgroundColor: theme.background }]}>
+
+      <TouchableOpacity style={styles.themeToggle} onPress={toggleTheme}>
+        <Text style={{ color: theme.text }}>{isDark ? '☀️ Light Mode' : '🌙 Dark Mode'}</Text>
+      </TouchableOpacity>
+
+      <Text style={[styles.title, { color: theme.text }]}>Setup Account</Text>
 
       <TouchableOpacity onPress={pickImage}>
         {photo ? (
@@ -52,15 +59,16 @@ export default function SetupScreen() {
         )}
       </TouchableOpacity>
 
-      <Text style={styles.label}>First Name</Text>
+      <Text style={[styles.label, { color: theme.text }]}>First Name</Text>
       <Controller
         control={control}
         name="firstName"
         rules={{ required: 'First name is required' }}
         render={({ field: { onChange, value } }) => (
           <TextInput
-            style={styles.input}
+            style={[styles.input, { borderColor: theme.inputBorder, backgroundColor: theme.inputBackground, color: theme.text }]}
             placeholder="Enter first name"
+            placeholderTextColor={theme.subText}
             onChangeText={onChange}
             value={value}
           />
@@ -68,15 +76,16 @@ export default function SetupScreen() {
       />
       {errors.firstName && <Text style={styles.error}>{errors.firstName.message as string}</Text>}
 
-      <Text style={styles.label}>Last Name</Text>
+      <Text style={[styles.label, { color: theme.text }]}>Last Name</Text>
       <Controller
         control={control}
         name="lastName"
         rules={{ required: 'Last name is required' }}
         render={({ field: { onChange, value } }) => (
           <TextInput
-            style={styles.input}
+            style={[styles.input, { borderColor: theme.inputBorder, backgroundColor: theme.inputBackground, color: theme.text }]}
             placeholder="Enter last name"
+            placeholderTextColor={theme.subText}
             onChangeText={onChange}
             value={value}
           />
@@ -84,9 +93,10 @@ export default function SetupScreen() {
       />
       {errors.lastName && <Text style={styles.error}>{errors.lastName.message as string}</Text>}
 
-      <TouchableOpacity style={styles.button} onPress={handleSubmit(onSubmit)}>
+      <TouchableOpacity style={[styles.button, { backgroundColor: theme.buttonColor }]} onPress={handleSubmit(onSubmit)}>
         <Text style={styles.buttonText}>Finish</Text>
       </TouchableOpacity>
+
     </ScrollView>
   );
 }
@@ -96,7 +106,11 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     padding: 20,
-    backgroundColor: '#fff',
+  },
+  themeToggle: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
   },
   title: {
     fontSize: 24,
@@ -107,11 +121,9 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     marginBottom: 4,
-    color: '#333',
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ccc',
     padding: 10,
     marginBottom: 5,
     borderRadius: 5,
@@ -123,7 +135,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   button: {
-    backgroundColor: '#ff99c4',
     padding: 12,
     borderRadius: 5,
     marginTop: 10,
