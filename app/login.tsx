@@ -1,7 +1,15 @@
+import { AntDesign } from '@expo/vector-icons';
+import * as Google from 'expo-auth-session/providers/google';
 import { useRouter } from 'expo-router';
+import * as WebBrowser from 'expo-web-browser';
+import { GoogleAuthProvider, signInWithCredential, signInWithEmailAndPassword } from 'firebase/auth';
+import { useEffect } from 'react';
 import { Controller, SubmitHandler, useForm } from 'react-hook-form';
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { auth } from '../config/firebaseConfig';
 import { useTheme } from '../context/ThemeContext';
+
+WebBrowser.maybeCompleteAuthSession();
 
 type FormData = {
   email: string;
@@ -13,9 +21,27 @@ export default function LoginScreen() {
   const { theme, isDark, toggleTheme } = useTheme();
   const { control, handleSubmit, formState: { errors } } = useForm<FormData>();
 
-  const onSubmit: SubmitHandler<FormData> = (data) => {
-    console.log(data);
-    router.replace('/');
+  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
+    clientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID,
+  });
+
+  useEffect(() => {
+    if (response?.type === 'success') {
+      const { id_token } = response.params;
+      const credential = GoogleAuthProvider.credential(id_token);
+      signInWithCredential(auth, credential)
+        .then(() => router.replace('/'))
+        .catch((error) => Alert.alert('Google Login Failed', error.message));
+    }
+  }, [response]);
+
+  const onSubmit: SubmitHandler<FormData> = async (data) => {
+    try {
+      await signInWithEmailAndPassword(auth, data.email, data.password);
+      router.replace('/');
+    } catch (error: any) {
+      Alert.alert('Login Failed', error.message);
+    }
   };
 
   return (
@@ -69,9 +95,20 @@ export default function LoginScreen() {
       />
       {errors.password && <Text style={styles.error}>{errors.password.message as string}</Text>}
 
-      <TouchableOpacity style={[styles.button, { backgroundColor: theme.buttonColor }]} onPress={handleSubmit(onSubmit)}>
+      <TouchableOpacity style={[styles.button, { backgroundColor: '#ffb6c1' }]} onPress={handleSubmit(onSubmit)}>
         <Text style={styles.buttonText}>Login</Text>
       </TouchableOpacity>
+
+      <Text style={[styles.orText, { color: theme.subText }]}>- OR -</Text>
+
+   <TouchableOpacity
+  style={styles.googleButton}
+  onPress={() => promptAsync()}
+  disabled={!request}
+>
+  <AntDesign name="google" size={20} color="red" />
+  <Text style={styles.googleButtonText}>Sign in with Google</Text>
+</TouchableOpacity>
 
       <TouchableOpacity onPress={() => router.push('/register')}>
         <Text style={[styles.linkText, { color: theme.linkColor }]}>Don't have an account? Register</Text>
@@ -118,13 +155,34 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 5,
     marginTop: 10,
-    marginBottom: 15,
+    marginBottom: 10,
   },
   buttonText: {
     color: 'white',
     textAlign: 'center',
     fontWeight: 'bold',
     fontSize: 16,
+  },
+  orText: {
+    textAlign: 'center',
+    marginVertical: 10,
+    fontSize: 13,
+  },
+googleButton: {
+  borderWidth: 1,
+  borderColor: '#ccc',
+  padding: 12,
+  borderRadius: 5,
+  marginBottom: 15,
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: 8,
+},
+  googleButtonText: {
+    textAlign: 'center',
+    fontSize: 15,
+    fontWeight: 'bold',
   },
   linkText: {
     textAlign: 'center',

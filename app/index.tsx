@@ -1,12 +1,26 @@
-import { useRouter } from 'expo-router';
+import { Redirect, useRouter } from 'expo-router';
+import { onAuthStateChanged } from 'firebase/auth';
+import { useEffect, useState } from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { auth } from '../config/firebaseConfig';
 import { useTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
 
-export default function HomeScreen() {
+export default function Index() {
+  const [loggedIn, setLoggedIn] = useState<boolean | null>(null);
   const router = useRouter();
   const { userData } = useUser();
   const { theme, isDark, toggleTheme } = useTheme();
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (user) => {
+      setLoggedIn(!!user);
+    });
+    return unsub;
+  }, []);
+
+  if (loggedIn === null) return null;
+  if (!loggedIn) return <Redirect href="/login" />;
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -79,7 +93,7 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   button: {
-    backgroundColor: '#f44336',
+    backgroundColor: '#ffb6c1',
     padding: 12,
     borderRadius: 5,
     width: 150,

@@ -93,7 +93,7 @@ export default function SetupScreen() {
       />
       {errors.lastName && <Text style={styles.error}>{errors.lastName.message as string}</Text>}
 
-      <TouchableOpacity style={[styles.button, { backgroundColor: theme.buttonColor }]} onPress={handleSubmit(onSubmit)}>
+<TouchableOpacity style={[styles.button, { backgroundColor: '#ffb6c1' }]} onPress={handleSubmit(onSubmit)}>
         <Text style={styles.buttonText}>Finish</Text>
       </TouchableOpacity>
 
